@@ -36,6 +36,22 @@ import javassist.bytecode.ClassFile;
  * method bodies into the {@link ProxyFactory} class methods that can instantiate
  * instances of the generated proxies.
  *
+ * 之所以使用Javassist生成动态代理，是因为其速度更快，相比于JDK Proxy生成的字节码更少，
+ * 精简了很多不必要的字节码。
+ *
+ * javassist是一个字节码类库，可以用他来动态生成类，动态修改类等等，
+ * 还有一个比较常见的用途是AOP，比如对一些类统一加权限过滤，加日志监控等等。
+ *
+ * 这篇来自阿里的文章做了一个动态代理的性能对比（http://javatar.iteye.com/blog/814426），
+ * 得出的结论如下：
+ * ASM和JAVAASSIST字节码生成方式不相上下，都很快，是CGLIB的5倍。
+ * CGLIB次之，是JDK自带的两倍。
+ * JDK自带的再次之，因JDK1.6对动态代理做了优化，如果用低版本JDK更慢，
+ * 要注意的是JDK也是通过字节码生成来实现动态代理的，而不是反射。
+ * JAVAASSIST提供者动态代理接口最慢，比JDK自带的还慢。 (这也是为什么
+ * 网上有人说JAVAASSIST比JDK还慢的原因，用JAVAASSIST最好别用它提供的
+ * 动态代理接口，而可以考虑用它的字节码生成方式)
+ *
  * @author Brett Wooldridge
  */
 public final class JavassistProxyFactory
@@ -70,6 +86,7 @@ public final class JavassistProxyFactory
    private static void modifyProxyFactory() throws NotFoundException, CannotCompileException, IOException {
       System.out.println("Generating method bodies for com.zaxxer.hikari.proxy.ProxyFactory");
 
+      //这边就是 生成ProxyFactory 方法体中的代码
       String packageName = ProxyConnection.class.getPackage().getName();
       CtClass proxyCt = classPool.getCtClass("com.zaxxer.hikari.pool.ProxyFactory");
       for (CtMethod method : proxyCt.getMethods()) {

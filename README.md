@@ -6,6 +6,14 @@
 [![][Maven Central img]][Maven Central]
 [![][Javadocs img]][Javadocs]
 
+**_这是我的源码注释分支_**  
+
+关注的代码包括下列:  
+--  com.zaxxer.hikari.util.ConcurrentBag  
+--  com.zaxxer.hikari.util.FastList  
+--  com.zaxxer.hikari.util.SuspendResumeLock   
+--  com.zaxxer.hikari.util.JavassistProxyFactory/ProxyFactory/Proxy* 
+
 Fast, simple, reliable.  HikariCP is a "zero-overhead" production ready JDBC connection pool.  At roughly 130Kb, the library is very light.  Read about [how we do it here](https://github.com/brettwooldridge/HikariCP/wiki/Down-the-Rabbit-Hole).
 
 &nbsp;&nbsp;&nbsp;<sup>**"Simplicity is prerequisite for reliability."**<br>

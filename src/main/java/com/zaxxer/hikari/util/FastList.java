@@ -32,7 +32,10 @@ import java.util.function.UnaryOperator;
 
 /**
  * Fast list without range checking.
- *
+ * 快速数组是无边界校验的, 一个List接口的精简实现，
+ * 只实现了接口中必要的几个方法
+ * 代替ArrayList：避免每次get()调用都要进行range check，
+ * 避免调用remove()时的从头到尾的扫描
  * @author Brett Wooldridge
  */
 public final class FastList<T> implements List<T>, RandomAccess, Serializable
@@ -74,6 +77,8 @@ public final class FastList<T> implements List<T>, RandomAccess, Serializable
    @Override
    public boolean add(T element)
    {
+      //判断是否需要扩容, 扩容步骤新建数组, 然后将就数据copy到新数组
+      //最后一位添加新元素
       if (size < elementData.length) {
          elementData[size++] = element;
       }
@@ -100,6 +105,7 @@ public final class FastList<T> implements List<T>, RandomAccess, Serializable
    @Override
    public T get(int index)
    {
+      //数组下标查询, 越界直接抛异常
       return elementData[index];
    }
 
@@ -228,7 +234,7 @@ public final class FastList<T> implements List<T>, RandomAccess, Serializable
                return elementData[index++];
             }
 
-            throw new NoSuchElementException("No more elements in FastList"); 
+            throw new NoSuchElementException("No more elements in FastList");
          }
       };
    }
