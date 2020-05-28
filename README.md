@@ -14,6 +14,20 @@
 --  com.zaxxer.hikari.util.SuspendResumeLock   
 --  com.zaxxer.hikari.util.JavassistProxyFactory/ProxyFactory/Proxy* 
 
+```text
+  hikariCP的数据使用流程 : 
+  ProxyConnection connection --> HikariDataSource.getConnection();
+               |                          |  
+               |              PoolEntry = ConcurrentBag.borrow(timeout)       
+               |                          |
+ ProxyFactory.HikariProxyConnection  <--  poolEntry.getProxyConnection   
+
+其中 HikariPool负责对资源连接进行管理，而ConcurrentBag则是作为物理连接的共享资源站，PoolEntry则是对物理连接的1-1封装。  
+PoolEntry通过borrow方法从bag中取出，之后通过PoolEntry.createProxyConnection调用工厂类生成HikariProxyConnection返回。  
+
+```
+
+
 Fast, simple, reliable.  HikariCP is a "zero-overhead" production ready JDBC connection pool.  At roughly 130Kb, the library is very light.  Read about [how we do it here](https://github.com/brettwooldridge/HikariCP/wiki/Down-the-Rabbit-Hole).
 
 &nbsp;&nbsp;&nbsp;<sup>**"Simplicity is prerequisite for reliability."**<br>
