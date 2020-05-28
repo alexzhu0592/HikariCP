@@ -24,6 +24,13 @@
 
 其中 HikariPool负责对资源连接进行管理，而ConcurrentBag则是作为物理连接的共享资源站，PoolEntry则是对物理连接的1-1封装。  
 PoolEntry通过borrow方法从bag中取出，之后通过PoolEntry.createProxyConnection调用工厂类生成HikariProxyConnection返回。  
+资源回收的时候, HikariProxyConnection调用close方法时调用了PooleEntry的recycle方法，之后通过HikariPool调用了ConcurrentBag的requite放回。   
+（poolEntry通过borrow从bag中取出，再通过requite放回。资源成功回收）。  
+HikariCP中通过独立的线程池addConnectionExecutor进行新连接的生成，连接生成方法为PoolEntryCreator。  
+物理链接的生成只由PoolBase的newConnection()实现，之后封装成PoolEntry，通过Bag的add方法加入ConcurrentBag。  
+当ConcurrentBag存在等待线程，或者有连接被关闭时，会触发IBagItemListener的addBagItem(wait)方法，调用PoolEntryCreator进行新连接的生成。  
+closeConnectionExecutor关闭连接后，会调用fillPool()方法对连接池进行连接填充。  
+同时HikariPool提供evictConnection(Connection)方法对物理连接进行手动关闭。
 
 ```
 
