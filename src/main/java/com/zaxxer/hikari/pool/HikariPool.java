@@ -66,6 +66,9 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * This is the primary connection pool class that provides the basic
  * pooling behavior for HikariCP.
  *
+ * 入口类HikariDatasource是持有HikariPool这个对象进行管理Connection连接的
+ *这个类是主要的提供连接池基本功能连接池类
+ *
  * @author Brett Wooldridge
  */
 public final class HikariPool extends PoolBase implements HikariPoolMXBean, IBagStateListener
@@ -87,14 +90,18 @@ public final class HikariPool extends PoolBase implements HikariPoolMXBean, IBag
    private final PoolEntryCreator poolEntryCreator = new PoolEntryCreator(null /*logging prefix*/);
    private final PoolEntryCreator postFillPoolEntryCreator = new PoolEntryCreator("After adding ");
    private final Collection<Runnable> addConnectionQueueReadOnlyView;
+   //为连接池 添加连接的 线程池
    private final ThreadPoolExecutor addConnectionExecutor;
+   //为连接池 关闭连接的 线程池
    private final ThreadPoolExecutor closeConnectionExecutor;
-
+   //存放具体的连接池的容器
    private final ConcurrentBag<PoolEntry> connectionBag;
-
+  //监测线程池泄露的任务工厂
    private final ProxyLeakTaskFactory leakTaskFactory;
+   //获取连接的时候 锁
    private final SuspendResumeLock suspendResumeLock;
 
+   //是处理任务HouseKeeping的线程池  HouseKeeping任务是管理
    private final ScheduledExecutorService houseKeepingExecutorService;
    private ScheduledFuture<?> houseKeeperTask;
 
@@ -165,7 +172,7 @@ public final class HikariPool extends PoolBase implements HikariPoolMXBean, IBag
    /**
     * Get a connection from the pool, or timeout after the specified number of milliseconds.
     *
-    * @param hardTimeout the maximum time to wait for a connection from the pool
+    * @param hardTimeout the maximum time to wait for a connection from the pool 从连接池申请连接最大等待时间
     * @return a java.sql.Connection instance
     * @throws SQLException thrown if a timeout occurs trying to obtain a connection
     */
@@ -189,6 +196,7 @@ public final class HikariPool extends PoolBase implements HikariPoolMXBean, IBag
             }
             else {
                metricsTracker.recordBorrowStats(poolEntry, startTime);
+               //通过 poolEntry获取真正的物理连接
                return poolEntry.createProxyConnection(leakTaskFactory.schedule(poolEntry), now);
             }
          } while (timeout > 0L);
@@ -426,6 +434,7 @@ public final class HikariPool extends PoolBase implements HikariPoolMXBean, IBag
 
    /**
     * Recycle PoolEntry (add back to the pool)
+    * 回去连接
     *
     * @param poolEntry the PoolEntry to recycle
     */
@@ -756,6 +765,10 @@ public final class HikariPool extends PoolBase implements HikariPoolMXBean, IBag
 
    /**
     * The house keeping task to retire and maintain minimum idle connections.
+    *  该线程尝试在池中维护的最小空闲连接数，并不断刷新的通过MBean调整的connectionTimeout和validationTimeout等值，
+    *  leakDetectionThreshold这个值也是通过这个HouseKeeper的
+    * leakTask.updateLeakDetectionThreshold(config.getLeakDetectionThreshold())去管理的。
+    *
     */
    private final class HouseKeeper implements Runnable
    {

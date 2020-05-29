@@ -35,6 +35,11 @@ import static com.zaxxer.hikari.pool.HikariPool.POOL_NORMAL;
 /**
  * The HikariCP pooled DataSource.
  *
+ * 这个类是 外部hibernete还是batis还是其他的使用数据库连接池的入口类
+ * 内部持有一个 HikariPool对象, 世界上获取连接都是 通过这个对象获取的
+ *
+ * 这边实现了 ${@link javax.sql.DataSource} , 因此遵循jpa规范的都可以使用
+ *
  * @author Brett Wooldridge
  */
 public class HikariDataSource extends HikariConfig implements DataSource, Closeable
@@ -101,6 +106,7 @@ public class HikariDataSource extends HikariConfig implements DataSource, Closea
       }
 
       // See http://en.wikipedia.org/wiki/Double-checked_locking#Usage_in_Java
+      // 使用synchronize锁时候的 双重检查
       HikariPool result = pool;
       if (result == null) {
          synchronized (this) {
